@@ -7,14 +7,12 @@ import boto3
 from enum import Enum
 import json
 import re
-import logging as log
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from transformers.pipelines.base import KeyDataset
 
-log.basicConfig(level=log.DEBUG)
 
-
+# TODO: This should be using logging instead of print but
 class Colors(Enum):
     GREEN = 1
     BLUE = 2
@@ -102,11 +100,14 @@ class Model:
         for output in tqdm(
             self.pipeline(
                 KeyDataset(prompts, assignment.input_col),  # type: ignore[code]
+                pad_token_id=50256,
                 max_new_tokens=50,
                 do_sample=True,
+                truncation=True,
+                max_length=512,
             )
         ):
-            colored_print(output)
+            # colored_print(output)
             # TODO it might not be "generated_text" for all models?
             assignment.outputs.append(output[0]["generated_text"])  # type: ignore[code]
 
@@ -284,6 +285,12 @@ class Benchmark:
         dataset: Dataset = Dataset.from_csv(data_csv_location, **kwargs)  # type: ignore[code]
         self.add_dataset(dataset_name, dataset)
 
+    # adds a json as a dataset
+    def add_dataset_from_json(self, dataset_name: str, dataset_source: str, **kwargs):
+        # assuming from_json returns Dataset
+        dataset: Dataset = Dataset.from_json(dataset_source, **kwargs)  # type: ignore[code]
+        self.add_dataset(dataset_name, dataset)
+
     # adds a huggingface dataset
     def add_dataset_from_hf(self, dataset_name: str, dataset_source: str, **kwargs):
         # assuming load_dataset returns Dataset
@@ -367,8 +374,8 @@ class Ranger:
         self.model = Model(name, model_source, key, _id)
 
         self.benchmarks: list[Benchmark] = []
-        self.aws_access_key_id: str = "asdf"
-        self.aws_secret_access_key: str = "asdf"
+        self.aws_access_key_id: str = "secret"
+        self.aws_secret_access_key: str = "secret"
 
         colored_print("Created ranger: ", self)
 
