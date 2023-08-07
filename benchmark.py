@@ -1,15 +1,14 @@
 from __future__ import annotations
-from typing import Callable
-from datasets import Dataset, load_dataset
-from transformers import TextGenerationPipeline, pipeline
-from tqdm import tqdm
-import boto3
-from enum import Enum
-import json
-import re
 from concurrent.futures import ThreadPoolExecutor, as_completed
-
+from transformers import TextGenerationPipeline, pipeline
 from transformers.pipelines.base import KeyDataset
+from datasets import Dataset, load_dataset
+from typing import Callable
+from tqdm import tqdm
+from enum import Enum
+import logging as log
+import json
+import boto3
 
 
 # TODO: This should be using logging instead of print but
@@ -60,8 +59,9 @@ class BenchmarkResult:
 
 
 class Model:
-    def __init__(self, name: str, model_source: str, key, _id):
+    def __init__(self, name: str, model_source: str, max_tokens: int, key, _id):
         self.model_source: str = model_source
+        self.max_tokens: int = max_tokens
 
         match model_source:
             case "huggingface":
@@ -101,7 +101,7 @@ class Model:
             self.pipeline(
                 KeyDataset(prompts, assignment.input_col),  # type: ignore[code]
                 pad_token_id=50256,
-                max_new_tokens=50,
+                max_new_tokens=self.max_tokens,
                 do_sample=True,
                 truncation=True,
                 max_length=512,
@@ -133,7 +133,7 @@ class Model:
             try:
                 # TODO models currently takes in name of model,
                 # we want it to take in API_KEY and MODEL_ID
-                output = models.run_model(prompt, "falcon", 5)
+                output = models.run_model(prompt, "falcon", self.max_tokens)
             except models.APIError as e:
                 print(e)
                 return False
@@ -169,11 +169,16 @@ class Model:
 class Assignment:
     @staticmethod
     def sample_comparison_function(output: str, answer: str) -> bool:
-        output = str(output)
-        answer = str(answer)
+        output = str(output).lower()
+        answer = str(answer).lower()
 
-        output = re.sub("[^A-Za-z0-9]+", "", output.lower())
-        answer = re.sub("[^A-Za-z0-9]+", "", answer.lower())
+        # output = re.sub("\n", "", output)
+        # answer = re.sub("\n", "", answer)
+
+        # output = re.sub("[^A-Za-z0-9]+", "", output.lower())
+        # answer = re.sub("[^A-Za-z0-9]+", "", answer.lower())
+
+        log.debug(f"Comparing output: '{output}' to answer: '{answer}'")
 
         return output == answer or output.startswith(answer)
 
@@ -223,19 +228,9 @@ class Assignment:
     def get_outputs(self) -> list[str]:
         return self.dataset[self.output_col]
 
-    # TODO
-    # add async to this, to make things faster
-    # probably make a function called run_model that
-    #    returns a list[Coroutine] that can be asyncio.gather() somewhere else
-    # that way you can do all the IO and comparison parallel,
-    #    and just wait for the model sequentially
     def run(self, model: Model) -> float:
         model.run(self)
         return self.result
-        # if isinstance(model, TextGenerationPipeline):
-        #     return self.local_model(model)
-        # if isinstance(model, str):
-        #     return self.cloud_model(model)
 
 
 class Benchmark:
@@ -278,6 +273,8 @@ class Benchmark:
         self.datasets[dataset_name] = dataset
 
         colored_print("Created and added dataset: ", self.datasets[dataset_name])
+
+    # Dataset.from can take csv or json as argument if we want
 
     # adds a csv as a dataset
     def add_dataset_from_csv(self, dataset_name: str, data_csv_location: str, **kwargs):
@@ -368,10 +365,11 @@ class Ranger:
         self,
         name: str,
         model_source: str = "huggingface",
+        max_tokens: int = 5,
         key=None,
         _id=None,
     ):
-        self.model = Model(name, model_source, key, _id)
+        self.model = Model(name, model_source, max_tokens, key, _id)
 
         self.benchmarks: list[Benchmark] = []
         self.aws_access_key_id: str = "secret"
