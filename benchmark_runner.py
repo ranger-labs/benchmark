@@ -80,7 +80,7 @@ def legalbench() -> None:
     ranger.add_benchmark(custom_benchmark)
     ranger.run_benchmark("legalbench")
 
-    print(ranger.get_results()[0])
+    print(ranger.get_results())
 
 
 def openai_evals():
@@ -197,10 +197,6 @@ def openai_testing():
 
 if __name__ == "__main__":
     log.basicConfig(level=log.DEBUG, filename="benchmark_runner.log")
-    # local_model_local_data()
-    # local_model_hf_dataset_()
-    # cloud_model_local_data()
-    # cloud_model_hf_data()
     # upload_legalbench()
     # legalbench()
     # openai_evals()

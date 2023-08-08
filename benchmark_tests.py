@@ -64,7 +64,7 @@ def cloud_model_local_data():
     model_source = "gpt2"
     data_csv_location = "dummy_data.csv"
 
-    ranger: Ranger = Ranger(model_source, "baseten", "aaa", "bbb")
+    ranger: Ranger = Ranger(model_source, "baseten", key="aaa", _id="bbb")
     custom_benchmark: Benchmark = Benchmark("my_custom_benchmark")
 
     custom_benchmark.add_dataset_from_csv("dummy_dataset", data_csv_location)
