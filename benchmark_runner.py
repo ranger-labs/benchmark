@@ -49,7 +49,7 @@ def save_results_aws():
 def legalbench() -> None:
     model_source = "NousResearch/Nous-Hermes-Llama2-13b"
 
-    ranger: Ranger = Ranger(model_source)
+    ranger: Ranger = Ranger(model_source,"baseten",5,"DZ0KPsrZ.dGcR1CXBTSQSTzH1Vur2GCX5W1kSk7PL","1PylM20")
 
     custom_benchmark: Benchmark = Benchmark("legalbench")
 
@@ -80,7 +80,8 @@ def legalbench() -> None:
     ranger.add_benchmark(custom_benchmark)
     ranger.run_benchmark("legalbench")
 
-    print(ranger.get_results()[0])
+    for result in ranger.get_results():
+        log.info(result)
 
 
 def openai_evals():
@@ -202,6 +203,6 @@ if __name__ == "__main__":
     # cloud_model_local_data()
     # cloud_model_hf_data()
     # upload_legalbench()
-    # legalbench()
+    legalbench()
     # openai_evals()
-    openai_testing()
+    #openai_testing()

@@ -133,6 +133,7 @@ class Model:
             try:
                 # TODO models currently takes in name of model,
                 # we want it to take in API_KEY and MODEL_ID
+                log.info(prompt)
                 output = models.run_model(prompt, "falcon", self.max_tokens)
             except models.APIError as e:
                 print(e)
@@ -175,8 +176,8 @@ class Assignment:
         # output = re.sub("\n", "", output)
         # answer = re.sub("\n", "", answer)
 
-        # output = re.sub("[^A-Za-z0-9]+", "", output.lower())
-        # answer = re.sub("[^A-Za-z0-9]+", "", answer.lower())
+        output = re.sub("[^A-Za-z0-9]+", "", output.lower())
+        answer = re.sub("[^A-Za-z0-9]+", "", answer.lower())
 
         log.debug(f"Comparing output: '{output}' to answer: '{answer}'")
 
@@ -335,8 +336,11 @@ class Benchmark:
         self.result = BenchmarkResult(self.name, len(self.assignments))
 
         for assignment in self.assignments:
-            assignment_result = assignment.run(model)
-            self.result.add_result(assignment.name, assignment_result)
+            try:
+                assignment_result = assignment.run(model)
+                self.result.add_result(assignment.name, assignment_result)
+            except:
+                print(assignment.name, " failed")
 
         self.result.compute_average()
 
