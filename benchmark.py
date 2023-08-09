@@ -124,8 +124,10 @@ class Model:
 
     def baseten(self, assignment: Assignment) -> None:
         prompts: list[str] = assignment.get_inputs()
+        pormpts_new = []
         for prompt in prompts:
-            prompt = assignment.generate_from_template(assignment.template, prompt)
+            pormpts_new.append(assignment.generate_from_template(assignment.template, prompt))
+        prompts = pormpts_new
         answers: list[str] = assignment.get_outputs()
 
         if not len(prompts) == len(answers):
@@ -137,7 +139,7 @@ class Model:
             try:
                 # TODO models currently takes in name of model,
                 # we want it to take in API_KEY and MODEL_ID
-                log.info(prompt)
+                log.info("PROMPT" + prompt)
                 output = models.run_model(prompt, "falcon", self.max_tokens)
                 assignment.outputs.append(output)
             except models.APIError as e:

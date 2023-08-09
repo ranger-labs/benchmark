@@ -67,7 +67,7 @@ def legalbench() -> None:
                         delimiter="\t",
                     )
                     custom_benchmark.add_assignment(
-                        f"{dataset_name}_assignment",
+                        f"{assignment_name}_assignment",
                         dataset_name,
                         "text",
                         "answer",
@@ -76,7 +76,7 @@ def legalbench() -> None:
                     with open(f"legalbench/{assignment_name}/{file}", "r") as f:
                         template = f.read()
                     for assignment in custom_benchmark.assignments:
-                        if assignment.name == f"{dataset_name}_assignment":
+                        if assignment.name == f"{assignment_name}_assignment":
                             assignment.template = template
                             assignment.generate_from_template = generate
                             
