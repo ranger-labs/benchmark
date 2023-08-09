@@ -83,7 +83,6 @@ def legalbench() -> None:
     for result in ranger.get_results():
         log.info(result)
 
-
 def openai_evals():
     # TODO import OPENAIEVALS
     from openai_utils import OpenAIEvals
@@ -198,10 +197,6 @@ def openai_testing():
 
 if __name__ == "__main__":
     log.basicConfig(level=log.DEBUG, filename="benchmark_runner.log")
-    # local_model_local_data()
-    # local_model_hf_dataset_()
-    # cloud_model_local_data()
-    # cloud_model_hf_data()
     # upload_legalbench()
     legalbench()
     # openai_evals()

@@ -65,14 +65,13 @@ class Model:
 
         match model_source:
             case "huggingface":
-                colored_print("Using pipeline")
+                log.debug("Using pipeline")
                 self.pipeline: TextGenerationPipeline = pipeline(
                     "text-generation", name, trust_remote_code=True  # type: ignore[code]
                 )
             case "baseten":
-                colored_print("Using baseten")
+                log.debug("Using baseten")
                 if not key:
-                    print(key)
                     raise RangerException("MISSING", "No baseten credentials")
                 if not _id:
                     raise RangerException("MISSING", "No baseten model identification")
@@ -90,7 +89,7 @@ class Model:
             case "baseten":
                 self.baseten(assignment)
 
-    def local_model(self, assignment: Assignment):
+    def local_model(self, assignment: Assignment) -> None:
         prompts: Dataset = assignment.get_input_dataset()
         answers: list[str] = assignment.get_outputs()
 
@@ -135,6 +134,7 @@ class Model:
                 # we want it to take in API_KEY and MODEL_ID
                 log.info(prompt)
                 output = models.run_model(prompt, "falcon", self.max_tokens)
+                assignment.outputs.append(output)
             except models.APIError as e:
                 print(e)
                 return False
@@ -173,12 +173,15 @@ class Assignment:
         output = str(output).lower()
         answer = str(answer).lower()
 
+<<<<<<< HEAD
         # output = re.sub("\n", "", output)
         # answer = re.sub("\n", "", answer)
 
         output = re.sub("[^A-Za-z0-9]+", "", output.lower())
         answer = re.sub("[^A-Za-z0-9]+", "", answer.lower())
 
+=======
+>>>>>>> d9ef30c8029220bb2bfe4b2c9dbd5f896788b366
         log.debug(f"Comparing output: '{output}' to answer: '{answer}'")
 
         return output == answer or output.startswith(answer)
@@ -339,8 +342,13 @@ class Benchmark:
             try:
                 assignment_result = assignment.run(model)
                 self.result.add_result(assignment.name, assignment_result)
+<<<<<<< HEAD
             except:
                 print(assignment.name, " failed")
+=======
+            except Exception:
+                log.debug(f"Assignment {assignment.name} failed")
+>>>>>>> d9ef30c8029220bb2bfe4b2c9dbd5f896788b366
 
         self.result.compute_average()
 
