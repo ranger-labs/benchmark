@@ -9,6 +9,7 @@ from enum import Enum
 import logging as log
 import json
 import boto3
+import traceback
 
 
 # TODO: This should be using logging instead of print but
@@ -83,6 +84,8 @@ class Model:
                 raise RangerException("INVALID", "Invalid model source")
 
     def run(self, assignment: Assignment) -> None:
+
+
         match self.model_source:
             case "huggingface":
                 self.local_model(assignment)
@@ -121,6 +124,8 @@ class Model:
 
     def baseten(self, assignment: Assignment) -> None:
         prompts: list[str] = assignment.get_inputs()
+        for prompt in prompts:
+            prompt = assignment.generate_from_template(assignment.template, prompt)
         answers: list[str] = assignment.get_outputs()
 
         if not len(prompts) == len(answers):
@@ -173,15 +178,6 @@ class Assignment:
         output = str(output).lower()
         answer = str(answer).lower()
 
-<<<<<<< HEAD
-        # output = re.sub("\n", "", output)
-        # answer = re.sub("\n", "", answer)
-
-        output = re.sub("[^A-Za-z0-9]+", "", output.lower())
-        answer = re.sub("[^A-Za-z0-9]+", "", answer.lower())
-
-=======
->>>>>>> d9ef30c8029220bb2bfe4b2c9dbd5f896788b366
         log.debug(f"Comparing output: '{output}' to answer: '{answer}'")
 
         return output == answer or output.startswith(answer)
@@ -342,13 +338,11 @@ class Benchmark:
             try:
                 assignment_result = assignment.run(model)
                 self.result.add_result(assignment.name, assignment_result)
-<<<<<<< HEAD
-            except:
-                print(assignment.name, " failed")
-=======
+
             except Exception:
                 log.debug(f"Assignment {assignment.name} failed")
->>>>>>> d9ef30c8029220bb2bfe4b2c9dbd5f896788b366
+                traceback.print_exc()
+
 
         self.result.compute_average()
 

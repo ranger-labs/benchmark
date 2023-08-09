@@ -45,6 +45,8 @@ def upload_legalbench() -> None:
 def save_results_aws():
     return
 
+def generate(template, input):
+        return template.replace("{{text}}",input)
 
 def legalbench() -> None:
     model_source = "NousResearch/Nous-Hermes-Llama2-13b"
@@ -76,6 +78,8 @@ def legalbench() -> None:
                     for assignment in custom_benchmark.assignments:
                         if assignment.name == f"{dataset_name}_assignment":
                             assignment.template = template
+                            assignment.generate_from_template = generate
+                            
 
     ranger.add_benchmark(custom_benchmark)
     ranger.run_benchmark("legalbench")
